@@ -310,6 +310,9 @@ public class HttpServer {
                 out.append("Last-Modified: ").append(getHttpDate(lastModified)).append(CRLF);
             }
 
+            // For Cross Domain!
+            out.append("Access-Control-Allow-Origin: *").append(CRLF);
+
             out.append(CACHE_CONTROL).append(CRLF);
             out.append(CONNECTION_CLOSE).append(CRLF);
             out.append(SERVER_NAME).append(CRLF);

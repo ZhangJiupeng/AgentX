@@ -17,6 +17,8 @@
 package cc.agentx.ui.app;
 
 import cc.agentx.Constants;
+import cc.agentx.client.net.Status;
+import io.netty.handler.traffic.TrafficCounter;
 
 import java.util.Map;
 
@@ -33,11 +35,19 @@ public class XConsole {
         return new String[]{"text", Constants.APP_NAME + " " + Constants.APP_VERSION};
     }
 
-    public String[] listDns(String uri) {
-        return new String[]{"text", "Lst DNS"};
-    }
+//    public String[] listDns(String uri) {
+//        return new String[]{"text", "Lst DNS"};
+//    }
+//
+//    public String[] clearDns(String uri, Map<String, String> params) {
+//        return new String[]{"page", params.get("name"), params.get("token")};
+//    }
 
-    public String[] clearDns(String uri, Map<String, String> params) {
-        return new String[]{"page", params.get("name"), params.get("token")};
+    public String[] getTraffic(String uri, Map<String, String> params) {
+        TrafficCounter counter = Status.TRAFFIC_HANDLER.trafficCounter();
+        return new String[]{"text", "{\"readSum\":" + counter.cumulativeReadBytes() +
+                ",\"read\":" + counter.currentReadBytes() +
+                ",\"writeSum\":" + counter.cumulativeWrittenBytes() +
+                ",\"write\":" + counter.currentWrittenBytes() + "}"};
     }
 }

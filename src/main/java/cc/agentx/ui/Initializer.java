@@ -33,9 +33,12 @@ public class Initializer {
     // request files with the following suffix without mapping index
     private static final String ignoredSuffix = "js,css,png,jpg";
     // url-resource mapping [/path=filePath] or [/path=dynamicPagePath@classPath.methodName]
-    private static final String pageIndex = "/=index.app@cc.agentx.ui.app.XConsole.welcome\n" +
-            "/version=version.app@cc.agentx.ui.app.XConsole.version"/*\n" +
-            "/login=login.html\n" +
+    private static final String pageIndex = "/=console.html\n" +
+            "/console=console.html\n" +
+            "/index=index.app@cc.agentx.ui.app.XConsole.welcome\n" +
+            "/version=version.app@cc.agentx.ui.app.XConsole.version\n" +
+            "/traffic/get=traffic.app@cc.agentx.ui.app.XConsole.getTraffic"
+            /*"/login=login.html\n" +
             "/dns/list=dnsList.app@cc.agentx.ui.app.XConsole.listDns\n" +
             "/dns/clear=dnsList.app@cc.agentx.ui.app.XConsole.clearDns\n" +
             "/test=demo.html"*/;

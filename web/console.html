@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="echarts.common.min.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #373a3c;
+            background-color: rgba(236, 238, 239, .6);
+        }
+
+        #main {
+            width: 100%;
+            height: 70%;
+        }
+
+        #monitor {
+            float: left;
+            width: 85%;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        #panel {
+            float: right;
+            position: absolute;
+            right: 0;
+            /*background-color: grey;*/
+            width: 14%;
+            height: 70%;
+        }
+
+        #panel h2 {
+            padding-top: 20px;
+            font-weight: 400;
+        }
+
+        #panel p {
+            padding-top: 8px;
+            padding-bottom: 8px;
+            padding-left: 10px;
+            background: #e4e4e4;
+            box-shadow: 0 0 0 3px #ddd;
+            font-size: .8rem;
+        }
+
+        #panel p span {
+            font-size: 1.25rem;
+        }
+
+        header {
+            height: 15%;
+            overflow: hidden;
+        }
+
+        footer {
+            height: 15%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<header></header>
+<div id="main">
+    <div id="monitor"></div>
+    <div id="panel">
+        <h2>X-Console</h2>
+        <p>
+            <b>Total Download</b>
+            <br/><span id="writeSum">loading...</span>
+        </p>
+        <p>
+            <b>Total Upload</b>
+            <br/><span id="readSum">loading...</span>
+        </p>
+        <p>
+            <b>Download Speed</b>
+            <br/><span id="writeSpeed">loading...</span>
+        </p>
+        <p>
+            <b>Upload Speed</b>
+            <br/><span id="readSpeed">loading...</span>
+        </p>
+    </div>
+</div>
+<footer></footer>
+<script type="text/javascript">
+    var myChart = echarts.init(document.getElementById('monitor'));
+
+    var now = Date.parse(new Date());
+    var oneSec = 1000;
+    var value = Math.random() * 1000;
+    var uploadData = [];
+    var downloadData = [];
+
+    for (var i = 0; i < 60; i++) {
+        uploadData.push({
+            name: now.toString(),
+            value: [now - ((60 - i) * oneSec), 0]
+        });
+        downloadData.push({
+            name: now.toString(),
+            value: [now - ((60 - i) * oneSec), 0]
+        });
+    }
+
+    function ajax(options) {
+        options = options || {};
+        options.type = (options.type || "GET").toUpperCase();
+        options.dataType = options.dataType || "json";
+        var params = formatParams(options.data);
+
+        var xhr;
+        if (window.XMLHttpRequest) {
+            xhr = new XMLHttpRequest();
+        } else {
+            xhr = new ActiveXObject('Microsoft.XMLHTTP');
+        }
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                var status = xhr.status;
+                if (status >= 200 && status < 300) {
+                    options.success && options.success(xhr.responseText, xhr.responseXML);
+                } else {
+                    options.fail && options.fail(status);
+                }
+            }
+        };
+
+        if (options.type == "GET") {
+            xhr.open("GET", options.url + "?" + params, true);
+            xhr.send(null);
+        } else if (options.type == "POST") {
+            xhr.open("POST", options.url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send(params);
+        }
+    }
+
+    function formatParams(data) {
+        var arr = [];
+        for (var name in data) {
+            //noinspection JSUnfilteredForInLoop
+            arr.push(encodeURIComponent(name) + "=" + encodeURIComponent(data[name]));
+        }
+        arr.push(("v=" + Math.random()).replace(".", ""));
+        return arr.join("&");
+    }
+
+    option = {
+        title: {
+            text: 'AgentX 1.2    Real-time traffic',
+            left: '7%'
+        },
+        tooltip: {
+            trigger: 'axis',
+            formatter: function (params) {
+                switch (params.length) {
+                    case 1:
+                        return params[0].seriesName + ": " + getDataSizeStr(params[0].value[1]);
+                    case 2:
+                        return params[0].seriesName + ": " + getDataSizeStr(params[0].value[1]) + "<br/>" +
+                                params[1].seriesName + ": " + getDataSizeStr(params[1].value[1]);
+                    default:
+                        return null;
+                }
+            },
+            padding: [5, 10],
+            axisPointer: {
+                animation: false
+            }
+        },
+        xAxis: {
+            type: 'time',
+            splitNumber: 6,
+            splitLine: {
+                show: true
+            }
+        },
+        yAxis: {
+            type: 'value',
+            /*scale: 'true',*/
+            boundaryGap: [0, '100%'],
+            splitNumber: 8,
+            splitLine: {
+                show: true
+            }
+        },
+        dataZoom: [
+            {
+                id: 'dataZoomX',
+                type: 'slider',
+                xAxisIndex: [0],
+                filterMode: 'filter',
+                start: 60,
+                end: 100
+            }
+        ],
+        grid: {
+            show: true,
+            top: '10%',
+            right: '3%',
+            backgroundColor: '#fff'
+        },
+        textStyle: {
+            fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;',
+            fontWeight: 'lighter'
+        },
+        backgroundColor: 'rgba(236,238,239,.5)',
+        animationDuration: 0,
+        legend: {
+            data: ['download', 'upload'],
+            selected: {
+                'download': true,
+                'upload': false
+            },
+            right: '3%'
+        },
+        color: ['#1e77b4', '#a6cee3'],
+        series: [
+            {
+                name: 'download',
+                type: 'line',
+                showSymbol: false,
+                hoverAnimation: false,
+                data: downloadData
+            },
+            {
+                name: 'upload',
+                type: 'line',
+                showSymbol: false,
+                hoverAnimation: false,
+                data: uploadData
+            }
+        ]
+    };
+
+    setInterval(function () {
+        updateData();
+        myChart.setOption({
+            series: [
+                {
+                    data: downloadData
+                },
+                {
+                    data: uploadData
+                }
+            ]
+        });
+    }, 1000);
+
+    function getDataSizeStr(len) {
+        if (len < 0.1) {
+            return (len / 1024).toFixed(1) + " bytes";
+        }
+        if (len < 10) {
+            return len.toFixed(1) + " kb";
+        }
+        if (len < 1000) {
+            return Math.round(len) + " kb";
+        }
+        if (len < 1000 * 1000) {
+            return (len / 1024).toFixed(1) + " mb";
+        }
+        return (len / 1024 / 1024).toFixed(1) + " gb";
+    }
+
+    function updateData() {
+        ajax({
+            type: "GET",
+            url: "http://console.agentx.cc/traffic/get",
+            dataType: "json",
+            success: function (dat) {
+                now = Date.parse(new Date());
+                var traffic = JSON.parse(dat);
+                if (uploadData.length >= 1800) {
+                    uploadData.shift();
+                }
+
+                var writeKbs = parseFloat(traffic.write / 1024);
+                var readKbs = parseFloat(traffic.read / 1024);
+                console.log(document.getElementById("writeSpeed"));
+                (document.getElementById("writeSpeed")).innerHTML = (getDataSizeStr(writeKbs) + "/s");
+                (document.getElementById("readSpeed")).innerHTML = (getDataSizeStr(readKbs) + "/s");
+                (document.getElementById("writeSum")).innerHTML = (getDataSizeStr(parseFloat(traffic.writeSum / 1024)));
+                (document.getElementById("readSum")).innerHTML = (getDataSizeStr(parseFloat(traffic.readSum / 1024)));
+
+                uploadData.push({
+                    name: now.toString(),
+                    value: [
+                        now,
+                        readKbs
+                    ]
+                });
+
+                if (downloadData.length >= 1800) {
+                    downloadData.shift();
+                }
+                downloadData.push({
+                    name: now.toString(),
+                    value: [
+                        now,
+                        writeKbs
+                    ]
+                });
+            },
+            error: function (e) {
+                console.warn(e)
+            }
+        })
+    }
+
+    myChart.setOption(option);
+</script>
+</body>
+</html>

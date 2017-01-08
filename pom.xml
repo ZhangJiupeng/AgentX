@@ -81,6 +81,8 @@
                 </excludes>
                 <includes>
                     <include>**/*.xml</include>
+                    <include>**/*.html</include>
+                    <include>**/*.js</include>
                 </includes>
                 <filtering>false</filtering>
             </resource>
