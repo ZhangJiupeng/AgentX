@@ -1,7 +1,7 @@
 AgentX
 ============
 
-![](https://travis-ci.org/ZhangJiupeng/AgentX.svg?branch=master)
+[![Build Status](https://travis-ci.org/ZhangJiupeng/AgentX.svg?branch=master)](https://travis-ci.org/ZhangJiupeng/AgentX)
 
 AgentX is a [Socks5](https://www.ietf.org/rfc/rfc1928.txt) proxy based on [Netty](http://netty.io/), which can be used to pass the [GFW](https://en.wikipedia.org/wiki/Great_Firewall), support encryption, obfuscation, compression and masquerading in data transmission (allowing flexible configuration of multiple data processes), compatible with [Shadowsocks](https://shadowsocks.org/). It supports traffic monitoring and reserved custom protocol development interface (notice that this project is not the implementation of RFC2741)
 
