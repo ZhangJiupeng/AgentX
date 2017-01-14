@@ -285,7 +285,6 @@
 
                 var writeKbs = parseFloat(traffic.write / 1024);
                 var readKbs = parseFloat(traffic.read / 1024);
-                console.log(document.getElementById("writeSpeed"));
                 (document.getElementById("writeSpeed")).innerHTML = (getDataSizeStr(writeKbs) + "/s");
                 (document.getElementById("readSpeed")).innerHTML = (getDataSizeStr(readKbs) + "/s");
                 (document.getElementById("writeSum")).innerHTML = (getDataSizeStr(parseFloat(traffic.writeSum / 1024)));
