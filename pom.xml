@@ -38,6 +38,7 @@
     </developers>
 
     <properties>
+        <!-- Specific Param -->
         <!--<JAVA_HOME>C:/Program Files/Java/jdk1.8.0_66</JAVA_HOME>-->
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -98,6 +99,7 @@
                         <target>1.8</target>
                         <verbose>true</verbose>
                         <fork>true</fork>
+                        <!-- Specific Param -->
                         <!--<executable>${JAVA_HOME}/bin/javac</executable>-->
                         <encoding>UTF-8</encoding>
                     </configuration>

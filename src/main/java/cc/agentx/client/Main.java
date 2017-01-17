@@ -37,6 +37,7 @@ public class Main {
     }
 
     public static HttpServer httpServer;
+    public static XClient xClient;
 
     public static void startHttpServer() {
         int port;
@@ -77,15 +78,38 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) {
+    public static void start() {
         try {
             Main.init();
             Main.startHttpServer();
             Main.popConsolePage();
-            XClient.getInstance().start();
+            xClient = XClient.getInstance();
+            xClient.start();
         } finally {
             Main.closeHttpServer();
             log.info("\tBye!");
+        }
+    }
+
+    public static void stop() {
+        xClient.stop();
+        Main.closeHttpServer();
+        log.info("\tBye!");
+    }
+
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            Main.start();
+        }
+        switch (args[0]) {
+            case "start":
+                Main.start();
+                break;
+            case "stop":
+                Main.stop();
+                break;
+            default:
+                log.error("\tUnknown args0={}", args[0]);
         }
     }
 

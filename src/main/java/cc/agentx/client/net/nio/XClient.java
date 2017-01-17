@@ -36,6 +36,8 @@ import io.netty.util.internal.logging.Slf4JLoggerFactory;
 
 public final class XClient {
     private static final InternalLogger log = InternalLoggerFactory.getInstance(XClient.class);
+    private static EventLoopGroup bossGroup;
+    private static EventLoopGroup workerGroup;
 
     private XClient() {
     }
@@ -47,8 +49,8 @@ public final class XClient {
     public void start() {
         Configuration config = Configuration.INSTANCE;
         InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        bossGroup = new NioEventLoopGroup(1);
+        workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
@@ -75,6 +77,12 @@ public final class XClient {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
-        System.exit(0);
+    }
+
+    public void stop() {
+        if (bossGroup != null)
+            bossGroup.shutdownGracefully();
+        if (workerGroup != null)
+            workerGroup.shutdownGracefully();
     }
 }
