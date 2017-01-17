@@ -1,4 +1,4 @@
-AgentX
+![](http://7xp1jv.com1.z0.glb.clouddn.com/agentx-logo.png?imageView2/2/w/30) AgentX
 ============
 
 [![Build Status](https://travis-ci.org/ZhangJiupeng/AgentX.svg?branch=master)](https://travis-ci.org/ZhangJiupeng/AgentX)
