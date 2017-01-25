@@ -1,9 +1,10 @@
-AgentX
+[![](http://7xp1jv.com1.z0.glb.clouddn.com/agentx-logo.png?imageView2/2/w/48)](http://agentx.zhangjiupeng.com) AgentX
 ============
 
 [![Build Status](https://travis-ci.org/ZhangJiupeng/AgentX.svg?branch=master)](https://travis-ci.org/ZhangJiupeng/AgentX)
+[![Join Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/shadowsocks-java/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
-AgentX is a [Socks5](https://www.ietf.org/rfc/rfc1928.txt) proxy based on [Netty](http://netty.io/), which can be used to pass the [GFW](https://en.wikipedia.org/wiki/Great_Firewall), support encryption, obfuscation, compression and masquerading in data transmission (allowing flexible configuration of multiple data processes), compatible with [Shadowsocks](https://shadowsocks.org/). It supports traffic monitoring and reserved custom protocol development interface (notice that this project is not the implementation of RFC2741)
+AgentX is a [Socks5](https://www.ietf.org/rfc/rfc1928.txt) proxy based on [Netty](http://netty.io/), which can be used to bypass the [GFW](https://en.wikipedia.org/wiki/Great_Firewall), support encryption, obfuscation, compression and masquerading in data transmission (allowing flexible configuration of multiple data processes), compatible with [Shadowsocks](https://shadowsocks.org/). It supports traffic monitoring and reserved custom protocol development interface (notice that this project is not the implementation of RFC2741)
 
 
 ### Download
@@ -27,7 +28,7 @@ The latest version: 1.2-beta [download](https://github.com/ZhangJiupeng/AgentX/r
   * [快速使用](https://github.com/ZhangJiupeng/AgentX/wiki/%E5%BF%AB%E9%80%9F%E4%BD%BF%E7%94%A8-%E6%9C%8D%E5%8A%A1%E7%AB%AF)
   * [详细配置](https://github.com/ZhangJiupeng/AgentX/wiki/%E8%AF%A6%E7%BB%86%E9%85%8D%E7%BD%AE-%E6%9C%8D%E5%8A%A1%E7%AB%AF)
 
-## LICENSE
+### License
 Copyright 2017 ZhangJiupeng
 
 Licensed under the Apache License, Version 2.0 (the "License");
