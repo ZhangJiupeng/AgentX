@@ -16,23 +16,23 @@
 
 package cc.agentx.protocol.request;
 
-public class XRequestWrapperFactory {
-    /*private Map<String, Class<? extends XRequestWrapper>> xRequestWrapperList = new HashMap<String, Class<? extends XRequestWrapper>>() {{
-        put("shadowsocks", ShadowsocksRequestWrapper.class);
-        put("fakedhttp", FakedHttpRequestWrapper.class);
+public class XRequestResolverFactory {
+    /*private Map<String, Class<? extends XRequestResolver>> xRequestWrapperList = new HashMap<String, Class<? extends XRequestResolver>>() {{
+        put("shadowsocks", ShadowsocksRequestResolver.class);
+        put("fakedhttp", FakedHttpRequestResolver.class);
     }};*/
 
-    public static XRequestWrapper getInstance(String id) throws Exception {
-        /*Class<? extends XRequestWrapper> clazz = xRequestWrapperList.get(id);
+    public static XRequestResolver getInstance(String id) throws Exception {
+        /*Class<? extends XRequestResolver> clazz = xRequestWrapperList.get(id);
         if (clazz == null) {
             throw new RuntimeException("unknown protocol name: " + id);
         }
         return clazz.newInstance();*/
         switch (id) {
             case "shadowsocks":
-                return new ShadowsocksRequestWrapper();
+                return new ShadowsocksRequestResolver();
             case "fakedhttp":
-                return new FakedHttpRequestWrapper();
+                return new FakedHttpRequestResolver();
             default:
                 throw new Exception("unknown protocol \"" + id + "\"");
         }

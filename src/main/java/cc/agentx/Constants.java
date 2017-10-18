@@ -18,7 +18,7 @@ package cc.agentx;
 
 public final class Constants {
     public static final String APP_NAME = "agentx";
-    public static final String APP_VERSION = "1.2";
+    public static final String APP_VERSION = "1.3";
     public static final String WEB_SERVER_NAME = "agentx-web-console";
 
     private Constants() {

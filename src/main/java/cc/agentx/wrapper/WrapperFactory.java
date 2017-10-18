@@ -16,9 +16,9 @@
 
 package cc.agentx.wrapper;
 
-import cc.agentx.protocol.request.FakedHttpRequestWrapper;
-import cc.agentx.protocol.request.ShadowsocksRequestWrapper;
-import cc.agentx.protocol.request.XRequestWrapper;
+import cc.agentx.protocol.request.FakedHttpRequestResolver;
+import cc.agentx.protocol.request.ShadowsocksRequestResolver;
+import cc.agentx.protocol.request.XRequestResolver;
 import cc.agentx.security.AesCipher;
 import cc.agentx.security.BlowfishCipher;
 import cc.agentx.security.Cipher;
@@ -165,12 +165,12 @@ public class WrapperFactory {
         return new FrameWrapper(fixedFrameLength, frameHandler);
     }
 
-    public static XRequestWrapper newShadowsocksRequestWrapperInstance() {
-        return new ShadowsocksRequestWrapper();
+    public static XRequestResolver newShadowsocksRequestWrapperInstance() {
+        return new ShadowsocksRequestResolver();
     }
 
-    public static XRequestWrapper newFakedHttpRequestWrapperInstance() {
-        return new FakedHttpRequestWrapper();
+    public static XRequestResolver newFakedHttpRequestWrapperInstance() {
+        return new FakedHttpRequestResolver();
     }
 
 }

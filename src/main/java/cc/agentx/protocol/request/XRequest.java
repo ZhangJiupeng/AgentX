@@ -21,6 +21,8 @@ public class XRequest {
     private String host;
     private int port;
     private int subsequentDataLength;
+    private Channel channel = Channel.TCP;
+
     public XRequest(Type atyp, String host, int port, int subsequentDataLength) {
         this.atyp = atyp;
         this.host = host;
@@ -39,6 +41,15 @@ public class XRequest {
         this.host = target[1];
         this.port = Integer.parseInt(target[2]);
         this.subsequentDataLength = Integer.parseInt(target[3]);
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public XRequest setChannel(Channel channel) {
+        this.channel = channel;
+        return this;
     }
 
     public byte[] getBytes() {
@@ -61,7 +72,22 @@ public class XRequest {
         return atyp;
     }
 
+    @Override
+    public String toString() {
+        return "XRequest{" +
+                "atyp=" + atyp +
+                ", host='" + host + '\'' +
+                ", port=" + port +
+                ", subsequentDataLength=" + subsequentDataLength +
+                ", channel=" + channel +
+                '}';
+    }
+
+    public enum Channel {
+        TCP, UDP
+    }
+
     public enum Type {
-        IPV4, DOMAIN, IPV6
+        IPV4, DOMAIN, IPV6, UNKNOWN
     }
 }

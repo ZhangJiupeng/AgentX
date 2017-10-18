@@ -31,13 +31,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * <h2>A tiny local web server for agentx</h2>
  * <p>it supports GET and HEAD method only, HOWEVER, will
- * gradually improved.</p>
+ * gradually improved.<br>
  * <b>Notice:</b> this project is not for a web server,
  * you can see that the page configuration is embedded into
- * <code>cc.agentx.http.Initializer</code>. <br/>However,
+ * <code>cc.agentx.http.Initializer</code>. <br>However,
  * <code>cc.agentx.http</code> is designed separately,
  * it can be extracted into a single project.
- * <br/>
+ * <br>
  * Thus, this web server project might be developed in the future,
  * hold on and keep attention :)
  */

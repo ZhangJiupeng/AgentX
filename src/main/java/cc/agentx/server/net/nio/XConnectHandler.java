@@ -17,9 +17,10 @@
 package cc.agentx.server.net.nio;
 
 import cc.agentx.protocol.request.XRequest;
-import cc.agentx.protocol.request.XRequestWrapper;
+import cc.agentx.protocol.request.XRequestResolver;
 import cc.agentx.server.Configuration;
 import cc.agentx.server.cache.DnsCache;
+import cc.agentx.util.KeyHelper;
 import cc.agentx.wrapper.Wrapper;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -34,6 +35,7 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
@@ -43,7 +45,7 @@ public final class XConnectHandler extends ChannelInboundHandlerAdapter {
 
     private final Bootstrap bootstrap = new Bootstrap();
     private final ByteArrayOutputStream tailDataBuffer;
-    private final XRequestWrapper requestWrapper;
+    private final XRequestResolver requestResolver;
     private final boolean exposedRequest;
     private final Wrapper wrapper;
 
@@ -52,8 +54,8 @@ public final class XConnectHandler extends ChannelInboundHandlerAdapter {
     public XConnectHandler() {
         this.tailDataBuffer = new ByteArrayOutputStream();
         Configuration config = Configuration.INSTANCE;
-        this.requestWrapper = config.getXRequestWrapper();
-        this.exposedRequest = requestWrapper.exposeRequest();
+        this.requestResolver = config.getXRequestResolver();
+        this.exposedRequest = requestResolver.exposeRequest();
         this.wrapper = config.getWrapper();
     }
 
@@ -73,83 +75,110 @@ public final class XConnectHandler extends ChannelInboundHandlerAdapter {
                             return;
                         }
                     }
-                    XRequest xRequest = requestWrapper.parse(bytes);
-                    String host = xRequest.getHost();
-                    int port = xRequest.getPort();
-                    int dataLength = xRequest.getSubsequentDataLength();
-                    if (dataLength > 0) {
-                        byte[] tailData = Arrays.copyOfRange(bytes, bytes.length - dataLength, bytes.length);
-                        if (exposedRequest) {
-                            tailData = wrapper.unwrap(tailData);
-                            if (tailData != null) {
+                    XRequest xRequest = requestResolver.parse(bytes);
+
+                    // refrain CCA
+                    if (xRequest.getAtyp() == XRequest.Type.UNKNOWN) {
+                        // delay sniff request from 2s to 5s
+                        int delay = KeyHelper.generateRandomInteger(2000, 5000);
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } finally {
+                            throw new RuntimeException("unknown request type: "
+                                    + bytes[0] + ", disconnect in " + delay + " ms");
+                        }
+                    }
+
+                    if (xRequest.getChannel() == XRequest.Channel.TCP) {
+
+                        String host = xRequest.getHost();
+                        int port = xRequest.getPort();
+                        int dataLength = xRequest.getSubsequentDataLength();
+                        if (dataLength > 0) {
+                            byte[] tailData = Arrays.copyOfRange(bytes, bytes.length - dataLength, bytes.length);
+                            if (exposedRequest) {
+                                tailData = wrapper.unwrap(tailData);
+                                if (tailData != null) {
+                                    tailDataBuffer.write(tailData, 0, tailData.length);
+                                }
+                            } else {
                                 tailDataBuffer.write(tailData, 0, tailData.length);
                             }
-                        } else {
-                            tailDataBuffer.write(tailData, 0, tailData.length);
                         }
-                    }
-                    log.info("\tClient -> Proxy           \tTarget {}:{}{}", host, port, DnsCache.isCached(host) ? " [Cached]" : "");
-                    if (xRequest.getAtyp() == XRequest.Type.DOMAIN) {
-                        try {
-                            host = DnsCache.get(host);
-                            if (host == null) {
-                                host = xRequest.getHost();
+                        log.info("\tClient -> Proxy           \tTarget {}:{}{}", host, port, DnsCache.isCached(host) ? " [Cached]" : "");
+                        if (xRequest.getAtyp() == XRequest.Type.DOMAIN) {
+                            try {
+                                host = DnsCache.get(host);
+                                if (host == null) {
+                                    host = xRequest.getHost();
+                                }
+                            } catch (UnknownHostException e) {
+                                log.warn("\tClient <- Proxy           \tBad DNS! ({})", e.getMessage());
+                                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+                                return;
                             }
-                        } catch (UnknownHostException e) {
-                            log.warn("\tClient <- Proxy           \tBad DNS! ({})", e.getMessage());
-                            ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
-                            return;
                         }
-                    }
 
-                    Promise<Channel> promise = ctx.executor().newPromise();
-                    promise.addListener(
-                            new FutureListener<Channel>() {
-                                @Override
-                                public void operationComplete(final Future<Channel> future) throws Exception {
-                                    final Channel outboundChannel = future.getNow();
-                                    if (future.isSuccess()) {
-                                        // handle tail
-                                        byte[] tailData = tailDataBuffer.toByteArray();
-                                        tailDataBuffer.close();
-                                        if (tailData.length > 0) {
-                                            log.info("\tClient ==========> Target \tSend Tail [{} bytes]", tailData.length);
-                                        }
-                                        outboundChannel.writeAndFlush((tailData.length > 0)
-                                                ? Unpooled.wrappedBuffer(tailData) : Unpooled.EMPTY_BUFFER)
-                                                .addListener(channelFuture -> {
-                                                    // task handover
-                                                    outboundChannel.pipeline().addLast(new XRelayHandler(ctx.channel(), wrapper, false));
-                                                    ctx.pipeline().addLast(new XRelayHandler(outboundChannel, wrapper, true));
-                                                    ctx.pipeline().remove(XConnectHandler.this);
-                                                });
+                        Promise<Channel> promise = ctx.executor().newPromise();
+                        promise.addListener(
+                                new FutureListener<Channel>() {
+                                    @Override
+                                    public void operationComplete(final Future<Channel> future) throws Exception {
+                                        final Channel outboundChannel = future.getNow();
+                                        if (future.isSuccess()) {
+                                            // handle tail
+                                            byte[] tailData = tailDataBuffer.toByteArray();
+                                            tailDataBuffer.close();
+                                            if (tailData.length > 0) {
+                                                log.info("\tClient ==========> Target \tSend Tail [{} bytes]", tailData.length);
+                                            }
+                                            outboundChannel.writeAndFlush((tailData.length > 0)
+                                                    ? Unpooled.wrappedBuffer(tailData) : Unpooled.EMPTY_BUFFER)
+                                                    .addListener(channelFuture -> {
+                                                        // task handover
+                                                        outboundChannel.pipeline().addLast(new XRelayHandler(ctx.channel(), wrapper, false));
+                                                        ctx.pipeline().addLast(new XRelayHandler(outboundChannel, wrapper, true));
+                                                        ctx.pipeline().remove(XConnectHandler.this);
+                                                    });
 
-                                    } else {
-                                        if (ctx.channel().isActive()) {
-                                            ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+                                        } else {
+                                            if (ctx.channel().isActive()) {
+                                                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                    );
+                        );
 
-                    final String finalHost = host;
-                    bootstrap.group(ctx.channel().eventLoop())
-                            .channel(NioSocketChannel.class)
-                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
-                            .option(ChannelOption.SO_KEEPALIVE, true)
-                            .handler(new XPingHandler(promise, System.currentTimeMillis()))
-                            .connect(host, port).addListener(new ChannelFutureListener() {
-                        @Override
-                        public void operationComplete(ChannelFuture future) throws Exception {
-                            if (!future.isSuccess()) {
-                                if (ctx.channel().isActive()) {
-                                    log.warn("\tClient <- Proxy           \tBad Ping! ({}:{})", finalHost, port);
-                                    ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+                        final String finalHost = host;
+                        bootstrap.group(ctx.channel().eventLoop())
+                                .channel(NioSocketChannel.class)
+                                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
+                                .option(ChannelOption.SO_KEEPALIVE, true)
+                                .handler(new XPingHandler(promise, System.currentTimeMillis()))
+                                .connect(host, port).addListener(new ChannelFutureListener() {
+                            @Override
+                            public void operationComplete(ChannelFuture future) throws Exception {
+                                if (!future.isSuccess()) {
+                                    if (ctx.channel().isActive()) {
+                                        log.warn("\tClient <- Proxy           \tBad Ping! ({}:{})", finalHost, port);
+                                        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+
+                    } else if (xRequest.getChannel() == XRequest.Channel.UDP) {
+                        InetSocketAddress udpTarget = new InetSocketAddress(xRequest.getHost(), xRequest.getPort());
+                        XChannelMapper.putTcpChannel(udpTarget, ctx.channel());
+
+                        ctx.pipeline().addLast(new Tcp2UdpHandler(udpTarget, requestResolver, wrapper)); // handover
+                        ctx.pipeline().remove(this);
+                        ctx.fireChannelRead(msg);
+                        return;
+                    }
 
                     requestParsed = true;
                 } else {

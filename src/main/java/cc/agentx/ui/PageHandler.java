@@ -24,10 +24,10 @@ import java.util.regex.Matcher;
 /**
  * <b>Notice:</b> this project is not for a web server,
  * you can see that the page configuration is embedded into
- * <code>cc.agentx.http.Initializer</code>. <br/>However,
+ * <code>cc.agentx.http.Initializer</code>. <br>However,
  * <code>cc.agentx.http</code> is designed separately,
  * it can be extracted into a single project.
- * <br/>
+ * <br>
  * Thus, this web server project might be developed in the future,
  * hold on and keep attention :)
  */

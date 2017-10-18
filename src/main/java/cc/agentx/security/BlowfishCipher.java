@@ -30,8 +30,9 @@ public class BlowfishCipher extends Cipher {
     public static final int BLOWFISH_CFB = 16;
     private final int keyLength;
     private final StreamBlockCipher cipher;
+
     /**
-     * <b>Notice: </b><br/>
+     * <b>Notice: </b><br>
      * 1. in <code>new CFBBlockCipher(engine, <b>8</b> * 8);</code> the IV length (8) is
      * reference to the shadowsocks's design.
      *

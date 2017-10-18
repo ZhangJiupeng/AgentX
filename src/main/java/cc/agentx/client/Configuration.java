@@ -16,8 +16,8 @@
 
 package cc.agentx.client;
 
-import cc.agentx.protocol.request.XRequestWrapper;
-import cc.agentx.protocol.request.XRequestWrapperFactory;
+import cc.agentx.protocol.request.XRequestResolver;
+import cc.agentx.protocol.request.XRequestResolverFactory;
 import cc.agentx.util.KeyHelper;
 import cc.agentx.wrapper.Wrapper;
 import cc.agentx.wrapper.WrapperFactory;
@@ -136,7 +136,7 @@ public class Configuration {
     }
 
     private static void check() throws Exception {
-        if (!XRequestWrapperFactory.exists(INSTANCE.protocol)) {
+        if (!XRequestResolverFactory.exists(INSTANCE.protocol)) {
             throw new Exception("unknown protocol \"" + INSTANCE.protocol + "\"");
         }
         if (!INSTANCE.mode.equals("agentx") && !INSTANCE.mode.equals("socks5")) {
@@ -217,9 +217,9 @@ public class Configuration {
         return WrapperFactory.getInstance(wrappers);
     }
 
-    public XRequestWrapper getXRequestWrapper() {
+    public XRequestResolver getXRequestResolver() {
         try {
-            return XRequestWrapperFactory.getInstance(protocol);
+            return XRequestResolverFactory.getInstance(protocol);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

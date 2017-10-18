@@ -17,7 +17,7 @@
 package cc.agentx.client.net.nio;
 
 import cc.agentx.client.Configuration;
-import cc.agentx.protocol.request.XRequestWrapper;
+import cc.agentx.protocol.request.XRequestResolver;
 import cc.agentx.wrapper.Wrapper;
 import cc.agentx.wrapper.WrapperFactory;
 import io.netty.bootstrap.Bootstrap;
@@ -25,15 +25,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.socks.SocksCmdRequest;
-import io.netty.handler.codec.socks.SocksCmdResponse;
-import io.netty.handler.codec.socks.SocksCmdStatus;
+import io.netty.handler.codec.socks.*;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+
+import java.net.InetSocketAddress;
 
 @ChannelHandler.Sharable
 public final class XConnectHandler extends SimpleChannelInboundHandler<SocksCmdRequest> {
@@ -47,14 +47,14 @@ public final class XConnectHandler extends SimpleChannelInboundHandler<SocksCmdR
 
     private final Bootstrap bootstrap = new Bootstrap();
     private final Configuration config;
-    private final XRequestWrapper requestWrapper;
+    private final XRequestResolver requestResolver;
     private final boolean exposeRequest;
     private final Wrapper wrapper;
 
     public XConnectHandler() {
         this.config = Configuration.INSTANCE;
-        this.requestWrapper = config.getXRequestWrapper();
-        this.exposeRequest = requestWrapper.exposeRequest();
+        this.requestResolver = config.getXRequestResolver();
+        this.exposeRequest = requestResolver.exposeRequest();
         this.wrapper = config.getWrapper();
     }
 
@@ -69,29 +69,70 @@ public final class XConnectHandler extends SimpleChannelInboundHandler<SocksCmdR
                     public void operationComplete(final Future<Channel> future) throws Exception {
                         final Channel outboundChannel = future.getNow();
                         if (future.isSuccess()) {
-                            ctx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, request.addressType()))
-                                    .addListener(channelFuture -> {
-                                        ByteBuf byteBuf = Unpooled.buffer();
-                                        request.encodeAsByteBuf(byteBuf);
-                                        if (byteBuf.hasArray()) {
-                                            byte[] xRequestBytes = new byte[byteBuf.readableBytes()];
-                                            byteBuf.getBytes(0, xRequestBytes);
+                            if (request.cmdType() == SocksCmdType.UDP) {
+                                InetSocketAddress udpAddr = UdpServer.getUdpAddr();
+                                ctx.channel()
+                                        .writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS,
+                                                SocksAddressType.IPv4, udpAddr.getHostString(), udpAddr.getPort()));
 
-                                            if (proxyMode) {
-                                                // handshaking to remote proxy
-                                                xRequestBytes = requestWrapper.wrap(xRequestBytes);
-                                                outboundChannel.writeAndFlush(Unpooled.wrappedBuffer(
-                                                        exposeRequest ? xRequestBytes : wrapper.wrap(xRequestBytes)
-                                                ));
+                                // after udp associate, task handover (stay alive only)
+                                ReferenceCountUtil.retain(request); // auto-release? a trap?
+                                ctx.pipeline()
+                                        .remove(XConnectHandler.this)
+                                        .addLast(new ChannelInboundHandlerAdapter() {
+                                            @Override
+                                            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                                // ignore all tcp traffic, we should focus on udp listener now
                                             }
 
-                                            // task handover
-                                            ReferenceCountUtil.retain(request); // auto-release? a trap?
-                                            ctx.pipeline().remove(XConnectHandler.this);
-                                            outboundChannel.pipeline().addLast(new XRelayHandler(ctx.channel(), proxyMode ? wrapper : rawWrapper, false));
-                                            ctx.pipeline().addLast(new XRelayHandler(outboundChannel, proxyMode ? wrapper : rawWrapper, true));
-                                        }
-                                    });
+                                            @Override
+                                            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                                                XChannelMapper.closeChannelGracefullyBySocksChannel(ctx.channel());
+                                            }
+
+                                            @Override
+                                            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                                                log.warn("\tBad Connection! ({})", cause.getMessage());
+                                                XChannelMapper.closeChannelGracefullyBySocksChannel(ctx.channel());
+                                            }
+                                        });
+
+                                InetSocketAddress udpSource = new InetSocketAddress(request.host(), request.port());
+                                XChannelMapper.putSocksChannel(udpSource, ctx.channel());
+                                XChannelMapper.putTcpChannel(udpSource, outboundChannel);
+
+                                // listening future tcp responses
+                                outboundChannel.pipeline()
+                                        .addLast(new Tcp2UdpHandler(udpSource, requestResolver, proxyMode ? wrapper : rawWrapper));
+                            } else {
+                                ctx.channel()
+                                        .writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, request.addressType()))
+                                        .addListener(channelFuture -> {
+                                            ByteBuf byteBuf = Unpooled.buffer();
+                                            request.encodeAsByteBuf(byteBuf);
+                                            if (byteBuf.hasArray()) {
+                                                byte[] xRequestBytes = new byte[byteBuf.readableBytes()];
+                                                byteBuf.getBytes(0, xRequestBytes);
+
+                                                if (proxyMode) {
+                                                    // handshaking to remote proxy
+                                                    xRequestBytes = requestResolver.wrap(xRequestBytes);
+                                                    outboundChannel.writeAndFlush(Unpooled.wrappedBuffer(
+                                                            exposeRequest ? xRequestBytes : wrapper.wrap(xRequestBytes)
+                                                    ));
+                                                }
+
+                                                // task handover
+                                                ReferenceCountUtil.retain(request); // auto-release? a trap?
+                                                ctx.pipeline()
+                                                        .remove(XConnectHandler.this);
+                                                outboundChannel.pipeline()
+                                                        .addLast(new XRelayHandler(ctx.channel(), proxyMode ? wrapper : rawWrapper, false));
+                                                ctx.pipeline()
+                                                        .addLast(new XRelayHandler(outboundChannel, proxyMode ? wrapper : rawWrapper, true));
+                                            }
+                                        });
+                            }
                         } else {
                             ctx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.FAILURE, request.addressType()));
 

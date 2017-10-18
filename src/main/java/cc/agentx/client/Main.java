@@ -51,7 +51,7 @@ public class Main {
             return;
         }
         httpServer.start();
-        log.info("\tStartup {} at localhost:{}...", Constants.WEB_SERVER_NAME, port);
+        log.info("\tStartup {} at localhost:{}", Constants.WEB_SERVER_NAME, port);
         Configuration.INSTANCE.setConsole("console.agentx.cc", port);
     }
 

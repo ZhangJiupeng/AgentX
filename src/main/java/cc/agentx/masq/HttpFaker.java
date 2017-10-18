@@ -227,9 +227,9 @@ public class HttpFaker {
 
         if (randomizer.nextBoolean()) {
             if (randomizer.nextBoolean())
-                buffer.append(KeyHelper.generateRandomInteger(2000, 2017)).append("/")
+                buffer.append(KeyHelper.generateRandomInteger(2000, 2018)).append("/")
                         .append(KeyHelper.generateRandomInteger(1, 13)).append("/")
-                        .append(KeyHelper.generateRandomInteger(1, 32)).append("/");
+                        .append(KeyHelper.generateRandomInteger(1, 29)).append("/");
             if (randomizer.nextBoolean())
                 buffer.append(randomizer.nextInt(65536)).append("/");
             else

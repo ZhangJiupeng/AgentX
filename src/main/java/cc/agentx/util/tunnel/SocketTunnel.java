@@ -32,10 +32,9 @@ import java.util.Set;
 /**
  * a transparent socket tunnel
  * <p>
- * data exchange with src will be automatically redirect to dst.<br/>
- * for users, data forwarding is hardly perceptible.<br/>
- * for developers, it is no need to change your external code.<br/>
- * </p>
+ * data exchange with src will be automatically redirect to dst.<br>
+ * for users, data forwarding is hardly perceptible.<br>
+ * for developers, it is no need to change your external code.<br>
  * just enjoy!
  */
 public class SocketTunnel implements Runnable {
@@ -79,6 +78,7 @@ public class SocketTunnel implements Runnable {
         server.socket().setReuseAddress(true);
         server.socket().bind(srcAddr);
         server.register(selector, SelectionKey.OP_ACCEPT);
+        new Thread(this).start();
     }
 
     public void shutdown() throws IOException {

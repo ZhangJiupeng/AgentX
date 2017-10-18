@@ -16,6 +16,7 @@
 
 package cc.agentx.client.net.nio;
 
+import cc.agentx.client.Configuration;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
@@ -33,7 +34,7 @@ public final class Socks5Handler extends SimpleChannelInboundHandler<SocksReques
     public void channelRead0(ChannelHandlerContext ctx, SocksRequest request) throws Exception {
         switch (request.protocolVersion()) {
             case SOCKS4a:
-                log.warn("\tBad Handshake! (protocol version not supported: 4)");
+                log.warn("\tBad Handshake! (socks version not supported: 4)");
                 ctx.write(new SocksInitResponse(SocksAuthScheme.UNKNOWN));
                 if (ctx.channel().isActive()) {
                     ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
@@ -50,21 +51,31 @@ public final class Socks5Handler extends SimpleChannelInboundHandler<SocksReques
                         ctx.write(new SocksAuthResponse(SocksAuthStatus.SUCCESS));
                         break;
                     case CMD:
-                        if (((SocksCmdRequest) request).cmdType() == SocksCmdType.CONNECT) {
-                            ctx.pipeline().addLast(new XConnectHandler());
-                            ctx.pipeline().remove(this);
-                            ctx.fireChannelRead(request);
-                        } else {
-                            ctx.close();
-                            log.warn("\tBad Handshake! (command not support: {})", ((SocksCmdRequest) request).cmdType());
+                        switch (((SocksCmdRequest) request).cmdType()) {
+                            case UDP:
+                                // udp relay only supports IPv4 in this version
+                                if (((SocksCmdRequest) request).addressType() != SocksAddressType.IPv4) {
+                                    ctx.write(new SocksCmdResponse(SocksCmdStatus.ADDRESS_NOT_SUPPORTED, ((SocksCmdRequest) request).addressType()));
+                                    log.warn("\tBad Handshake! (UDP request addr_type not support: {})", ((SocksCmdRequest) request).addressType());
+                                    ctx.close();
+                                    break;
+                                }
+                            case CONNECT:
+                                ctx.pipeline().addLast(new XConnectHandler()); // handover
+                                ctx.pipeline().remove(this);
+                                ctx.fireChannelRead(request);
+                                break;
+                            default:
+                                ctx.close();
+                                log.warn("\tBad Handshake! (command not support: {})", ((SocksCmdRequest) request).cmdType());
                         }
                         break;
                     case UNKNOWN:
-                        log.warn("\tBad Handshake! (unknown request type)");
+                        log.warn("\tBad Handshake! (unknown request type: {})", request.requestType());
                 }
                 break;
             case UNKNOWN:
-                log.warn("\tBad Handshake! (protocol version not support: {}", request.protocolVersion());
+                log.warn("\tBad Handshake! (unknown protocol version: {}", request.protocolVersion());
                 ctx.close();
                 break;
         }

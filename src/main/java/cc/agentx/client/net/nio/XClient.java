@@ -67,8 +67,9 @@ public final class XClient {
                         }
                     });
             log.info("\tStartup {}-{}-client [{}{}]", Constants.APP_NAME, Constants.APP_VERSION, config.getMode(), config.getMode().equals("socks5") ? "" : ":" + config.getProtocol());
+            new Thread(() -> new UdpServer().start()).start();
             ChannelFuture future = bootstrap.bind(config.getLocalHost(), config.getLocalPort()).sync();
-            future.addListener(future1 -> log.info("\tListening at {}:{}...", config.getLocalHost(), config.getLocalPort()));
+            future.addListener(future1 -> log.info("\tTCP listening at {}:{}...", config.getLocalHost(), config.getLocalPort()));
             future.channel().closeFuture().sync();
         } catch (Exception e) {
             log.error("\tSocket bind failure ({})", e.getMessage());

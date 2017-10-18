@@ -16,8 +16,8 @@
 
 package cc.agentx.server;
 
-import cc.agentx.protocol.request.XRequestWrapper;
-import cc.agentx.protocol.request.XRequestWrapperFactory;
+import cc.agentx.protocol.request.XRequestResolver;
+import cc.agentx.protocol.request.XRequestResolverFactory;
 import cc.agentx.server.cache.DnsCache;
 import cc.agentx.util.tunnel.SocketTunnel;
 import cc.agentx.wrapper.Wrapper;
@@ -79,16 +79,16 @@ public class Configuration {
     @Override
     public String toString() {
         return "{\n" +
-                "  \"host\": \"" + host + "\",\n" +
-                "  \"port\": " + port + ",\n" +
-                "  \"relayPort\": " + Arrays.toString(relayPort) + ",\n" +
-                "  \"protocol\": \"" + protocol + "\",\n" +
-                "  \"encryption\": \"" + encryption + "\",\n" +
-                "  \"password\": \"" + password + "\",\n" +
-                "  \"process\": " + Arrays.toString(process) + ",\n" +
-                "  \"dnsCacheCapacity\": " + dnsCacheCapacity + ",\n" +
-                "  \"writeLimit\": " + writeLimit + ",\n" +
-                "  \"readLimit\": " + readLimit + "\n" +
+                "  host: \"" + host + "\",\n" +
+                "  port: " + port + ",\n" +
+                "  relayPort: " + Arrays.toString(relayPort) + ",\n" +
+                "  protocol: \"" + protocol + "\",\n" +
+                "  encryption: \"" + encryption + "\",\n" +
+                "  password: \"" + password + "\",\n" +
+                "  process: " + Arrays.toString(process) + ",\n" +
+                "  dnsCacheCapacity: " + dnsCacheCapacity + ",\n" +
+                "  writeLimit: " + writeLimit + ",\n" +
+                "  readLimit: " + readLimit + "\n" +
                 "}";
     }
 
@@ -144,7 +144,7 @@ public class Configuration {
     }
 
     private static void check() throws Exception {
-        if (!XRequestWrapperFactory.exists(INSTANCE.protocol)) {
+        if (!XRequestResolverFactory.exists(INSTANCE.protocol)) {
             throw new Exception("unknown protocol \"" + INSTANCE.protocol + "\"");
         }
         for (String processFunction : INSTANCE.process) {
@@ -254,9 +254,9 @@ public class Configuration {
         return WrapperFactory.getInstance(wrappers);
     }
 
-    public XRequestWrapper getXRequestWrapper() {
+    public XRequestResolver getXRequestResolver() {
         try {
-            return XRequestWrapperFactory.getInstance(protocol);
+            return XRequestResolverFactory.getInstance(protocol);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

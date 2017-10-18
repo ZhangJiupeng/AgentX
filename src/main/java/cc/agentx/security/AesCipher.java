@@ -36,14 +36,15 @@ public class AesCipher extends Cipher {
     public static final int AES_256_OFB = -32;
     private final int keyLength;
     private final StreamBlockCipher cipher;
+
     /**
-     * <b>Notice: </b><br/>
-     * 1. the <code>AESFastEngine</code> was replaced by <code>AESEngine</code> now.<br/>
+     * <b>Notice: </b><br>
+     * 1. the <code>AESFastEngine</code> was replaced by <code>AESEngine</code> now.<br>
      * 2. in <code>new CFBBlockCipher(engine, <b>16</b> * 8);</code> the IV length (16) is
      * reference to the shadowsocks's design.
      *
      * @see <a href="https://www.bouncycastle.org/releasenotes.html">
-     * https://www.bouncycastle.org/releasenotes.html</a>#CVE-2016-1000339<br/>
+     * https://www.bouncycastle.org/releasenotes.html</a>#CVE-2016-1000339<br>
      * <a href="https://shadowsocks.org/en/spec/cipher.html">
      * https://shadowsocks.org/en/spec/cipher.html</a>#Cipher
      */

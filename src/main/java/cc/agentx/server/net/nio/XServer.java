@@ -66,8 +66,9 @@ public final class XServer {
                         }
                     });
             log.info("\tStartup {}-{}-server [{}]", Constants.APP_NAME, Constants.APP_VERSION, config.getProtocol());
+            new Thread(() -> new UdpServer().start()).start();
             ChannelFuture future = bootstrap.bind(config.getHost(), config.getPort()).sync();
-            future.addListener(future1 -> log.info("\tListening at {}:{}...", config.getHost(), config.getPort()));
+            future.addListener(future1 -> log.info("\tTCP listening at {}:{}...", config.getHost(), config.getPort()));
             future.channel().closeFuture().sync();
         } catch (Exception e) {
             log.error("\tSocket bind failure ({})", e.getMessage());

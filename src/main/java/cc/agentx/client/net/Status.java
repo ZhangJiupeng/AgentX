@@ -24,16 +24,4 @@ public class Status {
     public static final GlobalTrafficShapingHandler TRAFFIC_HANDLER
             = new GlobalTrafficShapingHandler(Executors.newScheduledThreadPool(1), 1000);
 
-    public static void lookup() {
-        new Thread(() -> {
-            while (true) {
-                System.out.println("READ: " + TRAFFIC_HANDLER.trafficCounter().cumulativeReadBytes() + " bytes");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
 }
