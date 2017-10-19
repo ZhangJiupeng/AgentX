@@ -30,7 +30,7 @@ public class XChannelMapper {
     private static final InternalLogger log;
 
     static {
-        log = InternalLoggerFactory.getInstance(cc.agentx.client.net.nio.XChannelMapper.class);
+        log = InternalLoggerFactory.getInstance(XChannelMapper.class);
     }
 
     private static BiMap<InetSocketAddress, Channel> udpTable = HashBiMap.create();
