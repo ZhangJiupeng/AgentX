@@ -1,6 +1,6 @@
 #! /bin/bash
 
-name="agentx-server-1.2-beta"
+name="agentx-server-1.3-beta"
 basePath="/usr/local/agentx/"
 
 clear
@@ -12,7 +12,7 @@ echo -e "\n\n\
   /_/   \\_\\__, |\\___|_| |_|\\__ /_/\\_\\ \n\
           |___/                             \n\
                                             \n\
-       AgentX Server 1.2 Installer          \n\
+       AgentX Server 1.3 Installer          \n\
 ========================================="
 if [ ! -d "${basePath}" ]; then 
     echo -e "${name} has already removed. \n"

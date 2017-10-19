@@ -1,6 +1,6 @@
 #! /bin/bash
 
-name="agentx-server-1.2-beta"
+name="agentx-server-1.3-beta"
 downloadUrl="https://zhangjiupeng.com/agentx/${name}.tar.gz"
 basePath="/usr/local/agentx/"
 
@@ -13,7 +13,7 @@ echo -e "\n\n\
   /_/   \\_\\__, |\\___|_| |_|\\__ /_/\\_\\ \n\
           |___/                             \n\
                                             \n\
-       AgentX Server 1.2 Installer          \n\
+       AgentX Server 1.3 Installer          \n\
 ========================================="
 if [ ! -d "${basePath}" ]; then 
     echo -e "Create folder \"${basePath}\""
