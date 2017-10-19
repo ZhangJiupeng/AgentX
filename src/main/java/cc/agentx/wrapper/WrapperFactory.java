@@ -36,6 +36,12 @@ public class WrapperFactory {
         return getInstance(config.getEncryption(), config.getPassword(), id);
     }
 
+    /**
+     * Notice:
+     * The frame-based processes below cannot be configured simultaneously in this version of implementation
+     * <p>
+     * compress, zero-padding, random-padding
+     */
     public static Wrapper getInstance(String encryption, String password, String id) throws Exception {
         switch (id) {
             case "raw":
@@ -83,9 +89,9 @@ public class WrapperFactory {
             case "compress":
                 return new FrameWrapper(262144, new CompressWrapper());
             case "zero-padding":
-                return new FrameWrapper(262144, new ZeroPaddingWrapper(500, 500));
+                return new FrameWrapper(262144, new ZeroPaddingWrapper(200, 56));
             case "random-padding":
-                return new FrameWrapper(262144, new RandomPaddingWrapper(500, 500));
+                return new FrameWrapper(262144, new RandomPaddingWrapper(200, 56));
             default:
                 throw new Exception("unknown process function");
         }

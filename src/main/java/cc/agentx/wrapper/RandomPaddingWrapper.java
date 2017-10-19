@@ -37,7 +37,7 @@ public class RandomPaddingWrapper extends PaddingWrapper {
             int randomLength = KeyHelper.generateRandomInteger(
                     Math.max(paddingThreshold, bytes.length)
                     , paddingThreshold + paddingRange
-            ) + 1;
+            ) + headerLength;
             byte[] wrapBytes = KeyHelper.generateRandomBytes(randomLength);
             byte[] headerBytes = KeyHelper.getBytes(headerLength, randomLength - bytes.length);
             System.arraycopy(bytes, 0, wrapBytes, wrapBytes.length - bytes.length, bytes.length);
@@ -45,8 +45,8 @@ public class RandomPaddingWrapper extends PaddingWrapper {
             return wrapBytes;
         } else {
             byte[] wrapBytes = KeyHelper.generateRandomBytes(headerLength + bytes.length);
-            System.arraycopy(bytes, 0, wrapBytes, 1, bytes.length);
-            System.arraycopy(KeyHelper.getBytes(headerLength, 1), 0, wrapBytes, 0, headerLength);
+            System.arraycopy(bytes, 0, wrapBytes, headerLength, bytes.length);
+            System.arraycopy(KeyHelper.getBytes(headerLength, headerLength), 0, wrapBytes, 0, headerLength);
             return wrapBytes;
         }
     }
