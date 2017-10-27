@@ -12,7 +12,11 @@ AgentX is a [Socks5](https://www.ietf.org/rfc/rfc1928.txt) proxy based on [Netty
 
 
 ### Download
-[![download](https://img.shields.io/github/downloads/zhangjiupeng/agentx/total.svg)](https://github.com/ZhangJiupeng/AgentX/releases)
+Release Version | Release Date | Links
+-- | -- | --
+1.3.0 | 20.10.2017 | [download](https://github.com/ZhangJiupeng/AgentX/releases/tag/v1.3.0)
+1.2-beta | 10.01.2017 | [download](https://github.com/ZhangJiupeng/AgentX/releases/tag/v1.2-beta)
+
 
 ### Document
 [Introduction](https://github.com/ZhangJiupeng/AgentX/wiki/Introduction)
