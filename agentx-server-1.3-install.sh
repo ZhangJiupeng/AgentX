@@ -1,7 +1,7 @@
 #! /bin/bash
 
 name="agentx-server-1.3.0"
-downloadUrl="https://zhangjiupeng.com/agentx/${name}.tar.gz"
+downloadUrl="https://github.com/ZhangJiupeng/AgentX/releases/download/v1.3.0/${name}.tar.gz"
 basePath="/usr/local/agentx/"
 
 clear
