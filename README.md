@@ -8,8 +8,7 @@
 
 [中文说明](https://github.com/ZhangJiupeng/AgentX/wiki/简介)
 
-AgentX is a [Socks5](https://www.ietf.org/rfc/rfc1928.txt) proxy based on [Netty](http://netty.io/), which can be used to bypass the [GFW](https://en.wikipedia.org/wiki/Great_Firewall), support encryption, obfuscation, compression and masquerading in data transmission (allowing flexible configuration of multiple data processes), compatible with [Shadowsocks](https://shadowsocks.org/). It supports traffic monitoring and reserved custom protocol development interface (notice that this project is not the implementation of RFC2741)
-
+AgentX is a Socks5 proxy based on Netty, which can be used to bypass the GFW. It supports data encryption, obfuscation, compression and masquerading and allows customize of multiple data processes. AgentX is compatible with Shadowsocks, supports traffic monitoring and has protocol customize API reserved (Please notice that the project is not the implementation of RFC2741)
 
 ### Download
 Release Version | Release Date | Links
